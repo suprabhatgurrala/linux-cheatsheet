@@ -13,3 +13,6 @@ Syntax:
 
 Example:
 `sudo mount -t cifs -o username=admin,password=123,uid=1001,gid=1001 //nas/share /media/nas`
+
+### Unmounting a Samba share (or any mounted filesystem)
+`sudo umount <path to share>`
