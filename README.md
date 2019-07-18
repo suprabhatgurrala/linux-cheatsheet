@@ -16,3 +16,25 @@ Example:
 
 ### Unmounting a Samba share (or any mounted filesystem)
 `sudo umount <path to share>`
+
+## Linux software RAID Array
+
+### Formatting Disks for use with Linux RAID
+
+Use `parted` to change the partition type to GPT (for disks over 2 TB)
+
+Use `fdisk` to create a partition of type `Linux RAID auto` for the full size of the drive
+
+See (https://www.tecmint.com/create-raid-6-in-linux/)[this guide] for details.
+
+### Setting up the array
+
+Follow (https://www.digitalocean.com/community/tutorials/how-to-create-raid-arrays-with-mdadm-on-ubuntu-18-04)[this guide]
+
+To mount the array on boot, put configs in `/etc/mdadm.conf` instead of `/etc/mdadm/mdadm.conf` as the tutorial suggests.
+
+### Growing an existing array
+
+Pretty simple, use `mdadm --add` to add the new device to the array, and then use `mdadm --grow` to grow the array.
+
+Details in (http://www.ewams.net/?date=2014/03/29&view=Expanding_a_RAID6_volume_with_mdadm)[this guide]
