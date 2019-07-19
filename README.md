@@ -11,8 +11,10 @@ If you don't want password written out in plaintext, omitting the password optio
 Syntax:
 `sudo mount -t cifs -o username=<username>,password=<password>,uid=<desired UID>,gid=<desired GID>,vers=2.0 //<IP or hostname>/<shared folder> <desired mount point on local system>`
 
+The version parameter is important to specify or it will default to 1.0 and the operation will fail.
+
 Example:
-`sudo mount -t cifs -o username=admin,password=123,uid=1001,gid=1001 //nas/share /media/nas`
+`sudo mount -t cifs -o username=admin,password=123,uid=1001,gid=1001,vers=2.0 //nas/share /media/nas`
 
 ### Unmounting a Samba share (or any mounted filesystem)
 `sudo umount <path to share>`
