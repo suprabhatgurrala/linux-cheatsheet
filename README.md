@@ -40,3 +40,15 @@ To mount the array on boot, put configs in `/etc/mdadm.conf` instead of `/etc/md
 Pretty simple, use `mdadm --add` to add the new device to the array, and then use `mdadm --grow` to grow the array.
 
 Details in [this guide](http://www.ewams.net/?date=2014/03/29&view=Expanding_a_RAID6_volume_with_mdadm)
+
+## Terminal Colors over SSH
+Often the terminal over SSH is all the same color, which can be a little difficult to use. This can be fixed by uncommenting or adding the following line in the remote `.bashrc`:
+
+`force_color_prompt=yes`
+
+Then in the remote server's `.bash_profile`, add the following to load your `.bashrc` on login:
+```
+  if [ -f ~/.bashrc ]; then
+    . ~/.bashrc
+  fi
+```
