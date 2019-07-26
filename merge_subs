@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Script to merge .eng.srt files with the corresponding .mkv file. Also clears titles for video and audio tracks if they are set.
+
+input=$1
+
+if [[ -d $input ]] ; then
+        outdir=$(readlink -f "$input")
+        for file in *.mkv; do
+                mkvmerge -o "${outdir}/${file}" -S "${file}" --language 0:eng --default-track 0:no "${file%.*}.eng.srt" --title ""
+                mkvpropedit "${outdir}/${file}" --edit track:a1 --delete name --edit track:v1 --delete name
+        done
+else
+        echo "Please specify a valid directory as the first argument."
+fi
