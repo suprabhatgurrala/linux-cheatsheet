@@ -63,5 +63,7 @@ So for example, if a web app is being served on `localhost:32400` on your server
 
 `ssh user@12.34.56.78 -L 8888:localhost:32400`
 
+This is not a permanent solution, as it is only active while your SSH session is active. To do this permanently, you'll want to setup a reverse proxy.
+
 
 
