@@ -52,3 +52,16 @@ Then in the remote server's `.bash_profile`, add the following to load your `.ba
     . ~/.bashrc
   fi
 ```
+
+## SSH Tunneling
+
+To access web apps being served on localhost on a remote server, you can set up an SSH tunnel to access them on your remote machine.
+
+`ssh <username>@<server IP> -L <local port>:localhost:<server port>`.
+
+So for example, if a web app is being served on `localhost:32400` on your server with IP `12.34.56.78` and you want to be able to access it locally on port `8888`, you could run the following:
+
+`ssh user@12.34.56.78 -L 8888:localhost:32400`
+
+
+
