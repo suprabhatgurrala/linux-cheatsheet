@@ -1,0 +1,7 @@
+for d in */; do
+    for f in $(readlink -f "${d}/*"); do
+        if [[ "$f" =~ .*part01.* ]]; then
+                7z x "$f" -p<archive password> -aos
+        fi
+    done
+done
