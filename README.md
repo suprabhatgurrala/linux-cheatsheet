@@ -41,6 +41,12 @@ Pretty simple, use `mdadm --add` to add the new device to the array, and then us
 
 Details in [this guide](http://www.ewams.net/?date=2014/03/29&view=Expanding_a_RAID6_volume_with_mdadm)
 
+### Stopping a RAID resync
+
+RAID arrays will automatically perform checks every once in a while. This may cause degraded performance while the check is happening. To stop the checks after they have been started, you can use the `checkarray` script in Debian/Ubuntu distributions. It can be found at `/usr/share/mdadm/checkarray`.
+
+Use `checkarray -x --all` to stop in-progress checks.
+
 ## Terminal Colors over SSH
 Often the terminal over SSH is all the same color, which can be a little difficult to use. This can be fixed by uncommenting or adding the following line in the remote `.bashrc`:
 
