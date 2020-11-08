@@ -41,6 +41,9 @@ Pretty simple, use `mdadm --add` to add the new device to the array, and then us
 
 Details in [this guide](http://www.ewams.net/?date=2014/03/29&view=Expanding_a_RAID6_volume_with_mdadm)
 
+Once the reshape has been completed, the filesystem needs to be resized to match the new size.
+This can be done using: `resize2fs -p /dev/md0`
+
 ### Stopping a RAID resync
 
 RAID arrays will automatically perform checks every once in a while. This may cause degraded performance while the check is happening. To stop the checks after they have been started, you can use the `checkarray` script in Debian/Ubuntu distributions. It can be found at `/usr/share/mdadm/checkarray`.
