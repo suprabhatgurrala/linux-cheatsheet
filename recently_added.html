@@ -1,0 +1,104 @@
+% if data:
+<%
+    import plexpy
+    from plexpy.helpers import grouper, get_img_service
+    import re
+    import json
+    import requests
+
+    url = '<ENTER DISCORD WEBHOOK URL HERE>'
+
+    base_img_url = "<ENTER BASE URL FOR IMAGE HOST HERE>"
+
+    recently_added = data['recently_added']
+    if plexpy.CONFIG.NEWSLETTER_SELF_HOSTED and plexpy.CONFIG.HTTP_BASE_URL:
+        base_url = plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'newsletter/'
+    elif preview:
+        base_url = 'newsletter/'
+    else:
+        base_url = ''
+
+    service = get_img_service(include_self=False)
+    if service == 'self-hosted' and plexpy.CONFIG.HTTP_BASE_URL:
+        base_url_image = plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'image/'
+    elif preview and service and service != 'self-hosted':
+        base_url_image = 'image/'
+    else:
+        base_url_image = ''
+
+    if recently_added.get("movie"):
+        movie_webhook_obj = {"content": "**New Movies on SUPLEX 2**"}
+        movie_embeds = []
+        for movie in recently_added.get("movie"):
+            movie_string = f"{movie.get('title')} ({movie.get('year')})"
+            director_string = " & ".join(movie.get('directors'))
+            dur = int(movie.get('duration')) / (1000 * 60)
+            dur_hrs = dur // 60
+            dur_min = dur % 60
+            dur_str = f"{dur_hrs:.0f}h {dur_min:.0f}m"
+
+            image_url = base_img_url + movie.get('thumb_url').split("/")[-1]
+            
+            movie_embeds.append({
+                "title": movie_string,
+                "description": movie.get('summary'),
+                "fields": [
+                    {"name": "Director", "value": director_string},
+                    {"name": "Runtime", "value": dur_str}
+                ],
+                "image": {"url": image_url}
+                
+            })
+        movie_webhook_obj["embeds"] = movie_embeds
+
+        movie_response = requests.post(url, json=movie_webhook_obj)
+        movie_body = json.dumps(movie_webhook_obj, indent=4)
+
+    if recently_added.get("show"):
+        tv_webhook_obj = {"content": "**New TV on SUPLEX 2**"}
+        tv_embeds = []
+
+        for show in recently_added.get("show"):
+            season_info = ""
+            episode_info = ""
+            seasons = show.get('season_range')
+            seasons = seasons.replace("00", "01")
+            seasons = re.sub(r"0+([1-9]+)", r"\1", seasons)
+            if show.get('season_count') > 1:
+                show_added = "Seasons " + seasons
+            else:
+                season_info = show.get("season")[0]
+                if season_info.get('episode_count') == 1:
+                    episode_info = season_info['episode'][0]
+                    show_added = f"Season {season_info['media_index']} Episode {episode_info['media_index']}: '{episode_info['title']}'"
+                else:
+                    show_added = f"Season {seasons}, {season_info['episode_count']} episodes"
+            show_string = f"{show.get('title')} ({show.get('year')})"
+
+            image_url = base_img_url + show.get('thumb_url').split("/")[-1]
+            
+            tv_embeds.append({
+                "title": show_string,
+                "description": show_added,
+                "image": {"url": image_url}
+            })
+        tv_webhook_obj["embeds"] = tv_embeds
+
+        tv_response = requests.post(url, json=tv_webhook_obj)
+        tv_body = json.dumps(tv_webhook_obj, indent=4)
+
+%>
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+</head>
+<body>
+<h1>Movie Request Status: ${movie_response.status_code} ${movie_response.reason}
+<pre>${movie_body}</pre>
+<h1>TV Request Status: ${tv_response.status_code} ${tv_response.reason}
+<pre>${tv_body}</pre>
+</body>
+</html>
+% endif
