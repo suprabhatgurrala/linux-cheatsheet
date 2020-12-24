@@ -21,7 +21,7 @@
 		- `format=nv12` - set the output pixel format of the tonemapping filter, `nv12` refers to 8-bit
 	- `hwdownload` - download data from GPU memory (VRAM) back to CPU memory (system RAM)
 	- `format=nv12` - set the output pixel format, `nv12` refers to 8-bit
--`codec:v h264_nvenc` - use NVIDIA's H264 hardware encoder to encode the video stream. Use `ffmpeg -h encoder=h264_nvenc` to see full documentation of options
+- `codec:v h264_nvenc` - use NVIDIA's H264 hardware encoder to encode the video stream. Use `ffmpeg -h encoder=h264_nvenc` to see full documentation of options
 	- `-preset 18` - slowest (best quality) encoding preset
 	- `-tune hq` - set the encoding tuning info to `hq`
 	- `-rc 1` - set the rate control to variable bitrate mode
