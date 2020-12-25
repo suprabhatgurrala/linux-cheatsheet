@@ -1,7 +1,7 @@
 # Hardware-Accelerated Tonemapping and Encoding
 ## 10-bit HEVC 4K HDR to 8-bit AVC 1080p SDR
 
-```ffmpeg -init_hw_device opencl=gpu:0.0 -filter_hw_device gpu -hwaccel cuda -i [INPUT FILE] -vf "hwupload_cuda,scale_cuda=1920:1080,hwdownload,format=p010,hwupload,tonemap_opencl=t=bt709:p=bt709:m=bt709:tonemap=mobius:format=nv12,hwdownload,format=nv12" -codec:v h264_nvenc -preset 18 -tune hq -rc 1 -cq 18 -rc-lookahead 4 -codec:a copy -codec:s copy -max_muxing_queue_size 9999 [OUTPUT FILE]```
+```ffmpeg -init_hw_device opencl=gpu:0.0 -filter_hw_device gpu -hwaccel cuda -i [INPUT FILE] -vf "hwupload_cuda,scale_cuda=1920:1080,hwdownload,format=p010,hwupload,tonemap_opencl=t=bt709:p=bt709:m=bt709:tonemap=mobius:format=nv12,hwdownload,format=nv12" -codec:v h264_nvenc -preset 18 -profile high -level 41 -rc 1 -cq 18 -rc-lookahead 4 -codec:a copy -codec:s copy -max_muxing_queue_size 9999 [OUTPUT FILE]```
 
 ### Explanation of commands:
 - `-init_hw_device opencl=gpu:0.0 -filter_hw_device gpu` - sets the hardware filter device to be the GPU, allows for HW-accelerated OpenCL filters
@@ -23,7 +23,7 @@
 	- `format=nv12` - set the output pixel format, `nv12` refers to 8-bit
 - `codec:v h264_nvenc` - use NVIDIA's H264 hardware encoder to encode the video stream. Use `ffmpeg -h encoder=h264_nvenc` to see full documentation of options
 	- `-preset 18` - slowest (best quality) encoding preset
-	- `-tune hq` - set the encoding tuning info to `hq`
+	- `-profile high -level 41` - sets the format profile to `High@4.1`, [see here](https://en.wikipedia.org/wiki/Advanced_Video_Coding#Profiles) for more information about profiles in H264/AVC
 	- `-rc 1` - set the rate control to variable bitrate mode
 	- `cq 18` - set the target quality level for constant quality encoding (similar to `crf` in `x264`)
 	- `rc-lookahead 4` - number of frames to lookahead for rate-control
