@@ -39,10 +39,14 @@ To mount the array on boot, put configs in `/etc/mdadm.conf` instead of `/etc/md
 
 Pretty simple, use `mdadm --add` to add the new device to the array, and then use `mdadm --grow` to grow the array.
 
-Details in [this guide](http://www.ewams.net/?date=2014/03/29&view=Expanding_a_RAID6_volume_with_mdadm)
+Growing will trigger an array reshape, which can take days to complete for large arrays.
+
+Details in [this guide](https://raid.wiki.kernel.org/index.php/Growing)
 
 Once the reshape has been completed, the filesystem needs to be resized to match the new size.
 This can be done using: `resize2fs -p /dev/md0`
+
+Finally, the `mdadm.conf` needs to updated to reflect the new devices.
 
 ### Reassembling an existing array
 
