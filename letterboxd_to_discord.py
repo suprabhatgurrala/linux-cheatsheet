@@ -1,3 +1,4 @@
+import logging
 import time
 from datetime import datetime, timedelta
 
@@ -9,9 +10,21 @@ POST_FREQUENCY_HRS = 1
 DISCORD_WEBHOOK_URL = "<DISCORD WEBHOOK URL>"
 
 feeds = [
-    "https://letterboxd.com/<username>/rss/"
+    "https://letterboxd.com/<username1>/rss/",
+    "https://letterboxd.com/<username2>/rss/",
+    "https://letterboxd.com/<username3>/rss/",
 ]
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+file_handler = logging.FileHandler("<PATH TO LOG FILE>", "a+")
+file_handler.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter("{asctime} - {name} - {levelname} - {message}", style="{")
+file_handler.setFormatter(formatter)
+
+logger.addHandler(file_handler)
 
 def convert_entry_to_webhook(entry):
     if entry.get('letterboxd_rewatch') == "Yes":
@@ -90,7 +103,8 @@ def main():
             if (datetime.now() - published_time) < timedelta(hours=POST_FREQUENCY_HRS):
                 webhook_obj = convert_entry_to_webhook(entry)
                 r = requests.post(DISCORD_WEBHOOK_URL, json=webhook_obj)
-                print(r.status_code, r.reason)
+                logger.info("Post found in feed {feed}, webhook status: {r.status_code}: {r.reason}")
+    logger.info(f"Finished running script for {len(feeds)} feeds.")
 
 
 if __name__ == "__main__":
