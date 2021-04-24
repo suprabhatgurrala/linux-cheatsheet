@@ -19,7 +19,7 @@ feeds = [
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-file_handler = logging.FileHandler("/home/campbell/software/letterboxd_to_discord/l2d.log", "a+")
+file_handler = logging.FileHandler("<PATH TO LOG FILE>", "a+")
 file_handler.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter("{asctime} - {name} - {levelname} - {message}", style="{")
