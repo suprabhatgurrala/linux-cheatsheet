@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 
 import bs4
 import feedparser
+import pytz
 import requests
 
 POST_FREQUENCY_HRS = 1
@@ -18,7 +19,7 @@ feeds = [
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-file_handler = logging.FileHandler("<PATH TO LOG FILE>", "a+")
+file_handler = logging.FileHandler("/home/campbell/software/letterboxd_to_discord/l2d.log", "a+")
 file_handler.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter("{asctime} - {name} - {levelname} - {message}", style="{")
@@ -99,11 +100,14 @@ def main():
         d = feedparser.parse(feed)
 
         for entry in d["entries"]:
-            published_time = datetime.fromtimestamp(time.mktime(entry['published_parsed']))
-            if (datetime.now() - published_time) < timedelta(hours=POST_FREQUENCY_HRS):
+            published_struct = entry['published_parsed']
+            published_time = datetime(*published_struct[:6], tzinfo=pytz.utc)
+            current_time = datetime.now(tz=pytz.utc)
+    
+            if (current_time - published_time) < timedelta(hours=POST_FREQUENCY_HRS):
                 webhook_obj = convert_entry_to_webhook(entry)
                 r = requests.post(DISCORD_WEBHOOK_URL, json=webhook_obj)
-                logger.info("Post found in feed {feed}, webhook status: {r.status_code}: {r.reason}")
+                logger.info(f"Post found in feed {feed}, webhook status: {r.status_code}: {r.reason}")
     logger.info(f"Finished running script for {len(feeds)} feeds.")
 
 
