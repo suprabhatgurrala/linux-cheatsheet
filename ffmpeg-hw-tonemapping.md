@@ -1,7 +1,9 @@
 # Hardware-Accelerated Tonemapping and Encoding
 ## 10-bit HEVC 4K HDR to 8-bit AVC 1080p SDR
 
-```ffmpeg -loglevel warning -hide_banner -stats -y -vsync passthrough -init_hw_device opencl=gpu:0.0 -filter_hw_device gpu -hwaccel cuda -i [INPUT FILE] -vf "hwupload_cuda,scale_cuda=1920:1080,hwdownload,format=p010,hwupload,tonemap_opencl=t=bt709:p=bt709:m=bt709:tonemap=mobius:format=nv12,hwdownload,format=nv12" -codec:v h264_nvenc -preset 18 -profile high -level 41 -rc 1 -cq 18 -rc-lookahead 4 -codec:a copy -codec:s copy -max_muxing_queue_size 9999 [OUTPUT FILE]```
+```
+ffmpeg -loglevel warning -hide_banner -stats -y -vsync passthrough -init_hw_device opencl=gpu:0.0 -filter_hw_device gpu -hwaccel cuda -i [INPUT FILE] -vf "hwupload_cuda,scale_cuda=1920:1080,hwdownload,format=p010,hwupload,tonemap_opencl=t=bt709:p=bt709:m=bt709:tonemap=mobius:format=nv12,hwdownload,format=nv12" -codec:v h264_nvenc -preset 18 -profile high -level 41 -rc 1 -cq 18 -rc-lookahead 4 -codec:a copy -codec:s copy -max_muxing_queue_size 9999 [OUTPUT FILE]
+```
 
 ### Explanation of commands:
 - `-loglevel warning` - only print warning messages and suppress more detailed information
