@@ -11,23 +11,12 @@
     base_img_url = "<ENTER BASE URL FOR IMAGE HOST HERE>"
 
     recently_added = data['recently_added']
-    if plexpy.CONFIG.NEWSLETTER_SELF_HOSTED and plexpy.CONFIG.HTTP_BASE_URL:
-        base_url = plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'newsletter/'
-    elif preview:
-        base_url = 'newsletter/'
-    else:
-        base_url = ''
-
-    service = get_img_service(include_self=False)
-    if service == 'self-hosted' and plexpy.CONFIG.HTTP_BASE_URL:
-        base_url_image = plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'image/'
-    elif preview and service and service != 'self-hosted':
-        base_url_image = 'image/'
-    else:
-        base_url_image = ''
+   
+    movie_response = None
+    tv_response = None
 
     if recently_added.get("movie"):
-        movie_webhook_obj = {"content": "**New Movies on SUPLEX 2**"}
+        movie_webhook_obj = {"content": "**New Movies on SUPLEX**"}
         movie_embeds = []
         for movie in recently_added.get("movie"):
             movie_string = f"{movie.get('title')} ({movie.get('year')})"
@@ -37,7 +26,10 @@
             dur_min = dur % 60
             dur_str = f"{dur_hrs:.0f}h {dur_min:.0f}m"
 
-            image_url = base_img_url + movie.get('thumb_url').split("/")[-1]
+            v_id = movie.get('art').split('/')[-1]
+            rkey = movie.get('rating_key')
+
+            image_url = f"{base_img_url}v{v_id}/poster_{rkey}.png"
             
             movie_embeds.append({
                 "title": movie_string,
@@ -55,7 +47,7 @@
         movie_body = json.dumps(movie_webhook_obj, indent=4)
 
     if recently_added.get("show"):
-        tv_webhook_obj = {"content": "**New TV on SUPLEX 2**"}
+        tv_webhook_obj = {"content": "**New TV on SUPLEX**"}
         tv_embeds = []
 
         for show in recently_added.get("show"):
@@ -64,18 +56,30 @@
             seasons = show.get('season_range')
             seasons = seasons.replace("00", "01")
             seasons = re.sub(r"0+([1-9]+)", r"\1", seasons)
-            if show.get('season_count') > 1:
-                show_added = "Seasons " + seasons
+            
+            total_eps_added = 0
+            
+            for season_info in show.get("season"):
+                total_eps_added += season_info.get('episode_count')
+            
+            if total_eps_added < 6:
+                ep_lines = []
+                for season_info in show.get("season"):
+                    for episode_info in season_info['episode']:
+                        ep_lines.append(f"Season {season_info['media_index']} Episode {episode_info['media_index']}: '{episode_info['title']}'")
+                show_added = "\n".join(ep_lines)
             else:
-                season_info = show.get("season")[0]
-                if season_info.get('episode_count') == 1:
-                    episode_info = season_info['episode'][0]
-                    show_added = f"Season {season_info['media_index']} Episode {episode_info['media_index']}: '{episode_info['title']}'"
-                else:
-                    show_added = f"Season {seasons}, {season_info['episode_count']} episodes"
+                season_plural = "Season"
+                if show.get('season_count') > 1:
+                    season_plural += "s"
+                show_added = f"{season_plural} {seasons}, {total_eps_added} episodes"
+                        
             show_string = f"{show.get('title')} ({show.get('year')})"
+    
+            v_id = show.get('art').split('/')[-1]
+            rkey = show.get('rating_key')
 
-            image_url = base_img_url + show.get('thumb_url').split("/")[-1]
+            image_url = f"{base_img_url}v{v_id}/poster_{rkey}.png"
             
             tv_embeds.append({
                 "title": show_string,
@@ -95,10 +99,15 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 </head>
 <body>
-<h1>Movie Request Status: ${movie_response.status_code} ${movie_response.reason}
-<pre>${movie_body}</pre>
-<h1>TV Request Status: ${tv_response.status_code} ${tv_response.reason}
-<pre>${tv_body}</pre>
+    % if movie_response:
+        <h1>Movie Request Status: ${movie_response.status_code} ${movie_response.reason}
+    % endif
+    <pre>${movie_body}</pre>
+
+    %if tv_response:
+        <h1>TV Request Status: ${tv_response.status_code} ${tv_response.reason}
+    % endif
+    <pre>${tv_body}</pre>
 </body>
 </html>
 % endif
