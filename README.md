@@ -84,5 +84,44 @@ So for example, if a web app is being served on `localhost:32400` on your server
 
 This is not a permanent solution, as it is only active while your SSH session is active. To do this permanently, you'll want to setup a reverse proxy.
 
+## Polkit Configuration
 
+If you mainly access your Ubuntu machine remotely, you might get many popups asking you to authenticate.
+This is because as a remote login, you have fewer privelages than a local login.
 
+You can add custom rules to Polkit to allow your remote user to perform functions that would typically require an admin password.
+
+To allow color profiles and managed devices:
+
+`/etc/polkit-1/localauthority.conf.d/02-allow-colord.conf`
+```javascript
+polkit.addRule(function(action, subject) {
+ if ((action.id == "org.freedesktop.color-manager.create-device" ||
+ action.id == "org.freedesktop.color-manager.create-profile" ||
+ action.id == "org.freedesktop.color-manager.delete-device" ||
+ action.id == "org.freedesktop.color-manager.delete-profile" ||
+ action.id == "org.freedesktop.color-manager.modify-device" ||
+ action.id == "org.freedesktop.color-manager.modify-profile") &&
+ subject.isInGroup("{users}")) {
+ return polkit.Result.YES;
+ }
+});
+```
+
+To allow USB mounting:
+
+`/etc/polkit-1/rules.d/10-udisks2.rules`
+```javascript
+// See the polkit(8) man page for more information
+// about configuring polkit.
+
+// Allow udisks2 to mount devices without authentication
+// for users in the "wheel" group.
+polkit.addRule(function(action, subject) {
+    if ((action.id == "org.freedesktop.udisks2.filesystem-mount-system" ||
+         action.id == "org.freedesktop.udisks2.filesystem-mount") &&
+        subject.isInGroup("wheel")) {
+        return polkit.Result.YES;
+    }
+});
+```
