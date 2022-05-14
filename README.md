@@ -110,7 +110,7 @@ polkit.addRule(function(action, subject) {
 
 To allow USB mounting:
 
-`/etc/polkit-1/rules.d/10-udisks2.rules`
+`/etc/polkit-1/localauthority.conf.d/10-udisks2.conf`
 ```javascript
 // See the polkit(8) man page for more information
 // about configuring polkit.
