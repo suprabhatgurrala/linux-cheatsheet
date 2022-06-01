@@ -5,22 +5,35 @@
     import re
     import json
     import requests
+    from datetime import datetime, date
 
     url = '<ENTER DISCORD WEBHOOK URL HERE>'
 
     base_img_url = "<ENTER BASE URL FOR IMAGE HOST HERE>"
 
     recently_added = data['recently_added']
-   
+
     movie_response = None
     tv_response = None
 
-    if recently_added.get("movie"):
-        movie_webhook_obj = {"content": "**New Movies on SUPLEX**"}
+    movies_data = recently_added.get("movie")
+
+    if movies_data:
+        if len(movies_data) == 1:
+            movie_message = "1 new movie added to SUPLEX"
+        else:
+            movie_message = f"{len(movies_data)} new movies added to SUPLEX"
+        movie_webhook_obj = {"content": movie_message}
         movie_embeds = []
-        for movie in recently_added.get("movie"):
-            movie_string = f"{movie.get('title')} ({movie.get('year')})"
-            director_string = " & ".join(movie.get('directors'))
+        for movie in movies_data[0:5]:
+            director_string = ", ".join(movie.get('directors')[0:5])
+            actors_string = ", ".join(movie.get('actors')[0:5])
+            genres_string = ", ".join(movie.get('genres')[0:5])
+
+            parsed_release_dt = datetime.strptime(movie.get('originally_available_at'), "%Y-%m-%d")
+
+            release_date_str = parsed_release_dt.strftime("%B %d, %Y")
+
             dur = int(movie.get('duration')) / (1000 * 60)
             dur_hrs = dur // 60
             dur_min = dur % 60
@@ -31,61 +44,157 @@
 
             image_url = f"{base_img_url}v{v_id}/poster_{rkey}.png"
             
-            movie_embeds.append({
-                "title": movie_string,
+            date_added = datetime.fromtimestamp(float(movie.get('added_at')))
+            date_added_str = f"{date_added.isoformat()}.000Z"
+
+            embed = {
+                "title": movie.get('full_title'),
                 "description": movie.get('summary'),
                 "fields": [
+                    {"name": "Year", "value": movie.get('year')},
+                    {"name": "Original Release Date", "value": release_date_str},
                     {"name": "Director", "value": director_string},
-                    {"name": "Runtime", "value": dur_str}
+                    {"name": "Starring", "value": actors_string},
+                    {"name": "Runtime", "value": dur_str},
+                    {"name": "Genre", "value": genres_string}
                 ],
-                "image": {"url": image_url}
-                
-            })
+                "image": {"url": image_url},
+                "timestamp": date_added_str
+            }
+            movie_embeds.append(embed)
+        
         movie_webhook_obj["embeds"] = movie_embeds
-
         movie_response = requests.post(url, json=movie_webhook_obj)
         movie_body = json.dumps(movie_webhook_obj, indent=4)
+        
+    show_data = recently_added.get("show")
 
-    if recently_added.get("show"):
-        tv_webhook_obj = {"content": "**New TV on SUPLEX**"}
+    if show_data:
+        all_eps_added = 0
         tv_embeds = []
+        
+        episode_line_limit = 6
+        season_limit = 3
+        
+        for show in show_data[0:5]:    
+            season_range = "-".join([str(int(season_num)) for season_num in show.get('season_range').split("-")])
+            eps_added = 0
+            
+            for s in show.get('season'):
+                for e in s.get('episode'):
+                    eps_added += 1
+            
+            actors_string = ", ".join(show.get('actors')[0:5])
+            genres_string = ", ".join(show.get('genres')[0:5])
+            
+            season_title_ct = 0
+            season_limit_eps = 0
 
-        for show in recently_added.get("show"):
-            season_info = ""
-            episode_info = ""
-            seasons = show.get('season_range')
-            seasons = seasons.replace("00", "01")
-            seasons = re.sub(r"0+([1-9]+)", r"\1", seasons)
+            fields = [{"name": "Year", "value": show.get('year')}]
             
-            total_eps_added = 0
             
-            for season_info in show.get("season"):
-                total_eps_added += season_info.get('episode_count')
             
-            if total_eps_added < 6:
+            season_overflow_lines = []
+            
+            latest_air_date = date.fromtimestamp(0)
+            
+            for i, season_info in enumerate(show.get("season")):
+                season_title = season_info.get("title")
+                season_num = season_info.get("media_index")
+
+                if season_title and not season_title.replace("Season", "").strip().isnumeric():
+                    season_title_ct += 1
+                    season_name = season_title        
+                else:
+                    season_name = f"Season {season_num}"
+                
+                ep_range = "-".join([str(int(_)) for _ in season_info.get('episode_range').split("-")])
+                
+                ep_plural = "Episode"
+                if season_info.get('episode_count') > 1:
+                    ep_plural = "Episodes"
+                
                 ep_lines = []
-                for season_info in show.get("season"):
+
+                season_field_str = f"{season_name}, {ep_plural} {ep_range}"
+                
+                if i < season_limit:
                     for episode_info in season_info['episode']:
-                        ep_lines.append(f"Season {season_info['media_index']} Episode {episode_info['media_index']}: '{episode_info['title']}'")
-                show_added = "\n".join(ep_lines)
+                            if len(ep_lines) >= episode_line_limit:
+                                break
+                            if eps_added == 1:
+                                season_field_str += f" - {episode_info['title']}"
+                                ep_lines.append(f"|| {episode_info['summary']} ||")
+                            else:
+                                ep_lines.append(f"Episode {episode_info['media_index']} - {episode_info['title']}")
+                    if season_info.get('episode_count') > episode_line_limit:
+                        ep_lines.append(f"...and {season_info.get('episode_count') - episode_line_limit} more episodes.")
+
+                    fields.append({
+                        "name": season_field_str,
+                        "value": "\n".join(ep_lines)
+                    })
+                else:
+                    season_overflow_lines.append(f"{season_name}, {ep_plural} {ep_range}")
+            
+            if show.get('season_count') > season_limit:
+                
+                season_range = show.get('season_range').split("-")
+                
+                overflow_start = int(season_range[0]) + season_limit
+                range_end = int(season_range[1])
+                
+                fields.append({
+                    "name": f"...and {show.get('season_count') - season_limit} more seasons",
+                    "value": "\n".join(season_overflow_lines)
+                })
+                
+            all_eps_added += eps_added
+            
+            season_plural = "Season"
+            
+            if show.get('season_count') > 1:
+                season_plural += "s"
+                
+            if eps_added > 1:
+                air_date_str = "Newest Episode Air Date"
             else:
-                season_plural = "Season"
-                if show.get('season_count') > 1:
-                    season_plural += "s"
-                show_added = f"{season_plural} {seasons}, {total_eps_added} episodes"
-                        
-            show_string = f"{show.get('title')} ({show.get('year')})"
-    
+                air_date_str = "Air Date"
+                
+            latest_air_date = date.fromisoformat(show.get('season')[-1].get('episode')[-1].get('originally_available_at'))
+            
+            fields.append({
+                "name": air_date_str,
+                "value": latest_air_date.strftime("%b %d, %Y")
+            })
+                
+            if actors_string:
+                fields.append({"name": "Starring", "value": actors_string})
+            if genres_string:
+                fields.append({"name": "Genre", "value": genres_string})
+            
             v_id = show.get('art').split('/')[-1]
             rkey = show.get('rating_key')
 
             image_url = f"{base_img_url}v{v_id}/poster_{rkey}.png"
             
+            date_added = datetime.fromtimestamp(float(movie.get('added_at')))
+            date_added_str = f"{date_added.isoformat()}.000Z"
+
             tv_embeds.append({
-                "title": show_string,
-                "description": show_added,
-                "image": {"url": image_url}
+                "title": show.get('full_title'),
+                "description": show.get('summary'),
+                "fields": fields,
+                "image": {"url": image_url},
+                "timestamp": date_added_str
             })
+        
+        if all_eps_added == 1:
+            tv_message = "1 episode of TV added to SUPLEX"
+        else:
+            tv_message = f"{all_eps_added} new episodes on SUPLEX"
+        
+        tv_webhook_obj = {"content": tv_message}
         tv_webhook_obj["embeds"] = tv_embeds
 
         tv_response = requests.post(url, json=tv_webhook_obj)
