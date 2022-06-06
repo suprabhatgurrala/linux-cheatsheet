@@ -10,7 +10,7 @@
 
     url = '<ENTER DISCORD WEBHOOK URL HERE>'
 
-    base_img_url = "<ENTER BASE URL FOR IMAGE HOST HERE>"
+    base_img_url = '<ENTER BASE URL FOR IMAGE HOST HERE>'
 
     recently_added = data['recently_added']
 
@@ -53,10 +53,10 @@
                 "description": movie.get('summary'),
                 "fields": [
                     {"name": "Year", "value": movie.get('year')},
-                    {"name": "Original Release Date", "value": release_date_str},
                     {"name": "Director", "value": director_string},
                     {"name": "Starring", "value": actors_string},
                     {"name": "Runtime", "value": dur_str},
+                    {"name": "Original Release Date", "value": release_date_str},
                     {"name": "Genre", "value": genres_string}
                 ],
                 "image": {"url": image_url},
