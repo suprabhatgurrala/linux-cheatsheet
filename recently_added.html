@@ -45,7 +45,7 @@
 
             image_url = f"{base_img_url}v{v_id}/poster_{rkey}.png"
 
-            date_added = datetime.fromtimestamp(float(movie.get('updated_at')))
+            date_added = datetime.utcfromtimestamp(float(movie.get('added_at')))
             date_added_str = f"{date_added.isoformat()}.000Z"
 
             embed = {
