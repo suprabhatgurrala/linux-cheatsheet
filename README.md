@@ -125,3 +125,59 @@ polkit.addRule(function(action, subject) {
     }
 });
 ```
+
+## Holding Packages from Updating
+
+See this [StackOverflow link](https://askubuntu.com/questions/18654/how-to-prevent-updating-of-a-specific-package).
+
+### `dpkg`
+
+Put a package on hold:
+
+```bash
+echo "<package-name> hold" | sudo dpkg --set-selections
+```
+
+Remove the hold:
+
+```bash
+echo "<package-name> install" | sudo dpkg --set-selections
+```
+
+Display the status of all your packages:
+
+```bash
+dpkg --get-selections
+```
+
+Display the status of a single package:
+
+```bash
+dpkg --get-selections <package-name>
+```
+
+Show all packages on hold:
+
+```
+dpkg --get-selections | grep "\<hold$"
+```
+
+### `apt`
+
+Hold a package:
+
+```bash
+sudo apt-mark hold <package-name>
+```
+
+Remove the hold:
+
+```bash
+sudo apt-mark unhold <package-name>
+```
+
+Show all packages on hold:
+
+```bash
+sudo apt-mark showhold
+```
