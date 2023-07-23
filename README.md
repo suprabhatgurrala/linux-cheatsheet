@@ -60,6 +60,15 @@ RAID arrays will automatically perform checks every once in a while. This may ca
 
 Use `checkarray -x --all` to stop in-progress checks.
 
+## MergerFS + SnapRAID
+
+Another option for software RAID which is more flexible with different size drives, with some tradeoffs for performance and resiliency.
+
+See the following guides:
+
+- [Adding a new disk](https://linuxconfig.org/how-to-add-new-disk-to-existing-linux-system)
+- [Setting up MergerFS and SnapRAID](https://selfhostedhome.com/combining-different-sized-drives-with-mergerfs-and-snapraid/)
+
 ## Terminal Colors over SSH
 Often the terminal over SSH is all the same color, which can be a little difficult to use. This can be fixed by uncommenting or adding the following line in the remote `.bashrc`:
 
