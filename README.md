@@ -67,6 +67,8 @@ Another option for software RAID which is more flexible with different size driv
 See the following guides:
 
 - [Adding a new disk](https://linuxconfig.org/how-to-add-new-disk-to-existing-linux-system)
+- [Change the number of reserved blocks](https://ma.ttias.be/change-reserved-blocks-ext3-ext4-filesystem-linux/)
+    - By default `ext4` filesystems reserve 5% of their space for root users. In a large drive this may be significant amount of space, and not necessary if the drive will be part of a mergerFS pool.
 - [Setting up MergerFS and SnapRAID](https://selfhostedhome.com/combining-different-sized-drives-with-mergerfs-and-snapraid/)
 
 ## Terminal Colors over SSH
